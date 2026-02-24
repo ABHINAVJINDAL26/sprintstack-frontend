@@ -1,43 +1,69 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import AppLayout from '../components/AppLayout';
-import { projectService } from '../services/projectService';
-import { getErrorMessage } from '../utils/errorHandler';
+import { createProject } from '../services/projectService';
 
-function CreateProjectPage() {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const CreateProjectPage = () => {
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      setIsSubmitting(true);
-      await projectService.createProject(values);
-      toast.success('Project created');
-      reset();
+      await createProject(data);
+      toast.success('Project created successfully!');
+      navigate('/dashboard');
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Unable to create project'));
+      toast.error(error.response?.data?.message || 'Failed to create project');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <AppLayout title="Create Project">
-      <form onSubmit={handleSubmit(onSubmit)} className="form card">
-        <label>Project Name</label>
-        <input {...register('name', { required: 'Project name is required' })} />
-        {errors.name && <small>{errors.name.message}</small>}
-
-        <label>Description</label>
-        <textarea {...register('description')} rows={4} />
-
-        <button type="submit" className="btn" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating...' : 'Create Project'}
+    <div className="animate-fade-in max-w-2xl mx-auto py-10">
+      <div className="mb-8 flex items-center gap-4">
+        <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-800 rounded-full transition-colors text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
         </button>
-      </form>
-    </AppLayout>
+        <h1 className="text-3xl font-bold">Create New Project</h1>
+      </div>
+
+      <div className="glass-card">
+        <form className="form" onSubmit={handleSubmit(onSubmit)}>
+          <div className="form-group">
+            <label className="form-label">Project Name</label>
+            <input
+              type="text"
+              placeholder="e.g. SprintStack Mobile App"
+              {...register('name', { required: 'Project name is required' })}
+            />
+            {errors.name && <small>{errors.name.message}</small>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea
+              placeholder="What is this project about?"
+              rows="4"
+              {...register('description')}
+            ></textarea>
+          </div>
+
+          <div className="flex gap-4 mt-6">
+            <button type="button" onClick={() => navigate(-1)} className="btn btn-secondary flex-1">
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary flex-1" disabled={loading}>
+              {loading ? 'Creating...' : 'Create Project'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
-}
+};
 
 export default CreateProjectPage;

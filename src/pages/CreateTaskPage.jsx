@@ -1,54 +1,125 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import AppLayout from '../components/AppLayout';
-import { taskService } from '../services/taskService';
-import { getErrorMessage } from '../utils/errorHandler';
+import { createTask } from '../services/taskService';
+import { getProjectById } from '../services/projectService';
 
-function CreateTaskPage() {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const CreateTaskPage = () => {
+  const [searchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  const sprintId = searchParams.get('sprintId');
 
-  const onSubmit = async (values) => {
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      projectId,
+      sprintId,
+      priority: 'medium',
+      status: 'todo'
+    }
+  });
+
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [project, setProject] = useState(null);
+
+  useEffect(() => {
+    if (projectId) {
+      getProjectById(projectId).then(res => setProject(res.data.project));
+    }
+  }, [projectId]);
+
+  const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      setIsSubmitting(true);
-      await taskService.createTask(values);
-      toast.success('Task created');
-      reset();
+      await createTask(data);
+      toast.success('Task created successfully!');
+      if (sprintId) {
+        navigate(`/sprints/board?sprintId=${sprintId}&projectId=${projectId}`);
+      } else {
+        navigate(`/projects/${projectId}`);
+      }
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Unable to create task'));
+      toast.error(error.response?.data?.message || 'Failed to create task');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <AppLayout title="Create Task">
-      <form onSubmit={handleSubmit(onSubmit)} className="form card">
-        <label>Title</label>
-        <input {...register('title', { required: 'Title is required' })} />
-        {errors.title && <small>{errors.title.message}</small>}
-
-        <label>Description</label>
-        <textarea {...register('description')} rows={4} />
-
-        <label>Project ID</label>
-        <input {...register('projectId', { required: 'Project ID is required' })} />
-        {errors.projectId && <small>{errors.projectId.message}</small>}
-
-        <label>Priority</label>
-        <select {...register('priority')} defaultValue="medium">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-
-        <button type="submit" className="btn" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating...' : 'Create Task'}
+    <div className="animate-fade-in max-w-2xl mx-auto py-10">
+      <div className="mb-8 flex items-center gap-4">
+        <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-800 rounded-full transition-colors text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
         </button>
-      </form>
-    </AppLayout>
+        <div>
+          <h1 className="text-3xl font-bold">Create New Task</h1>
+          {project && <p className="text-sm text-slate-500 uppercase font-bold tracking-widest">{project.name}</p>}
+        </div>
+      </div>
+
+      <div className="glass-card">
+        <form className="form" onSubmit={handleSubmit(onSubmit)}>
+          <div className="form-group">
+            <label className="form-label">Task Title</label>
+            <input
+              type="text"
+              placeholder="e.g. Implement user authentication"
+              {...register('title', { required: 'Task title is required' })}
+            />
+            {errors.title && <small>{errors.title.message}</small>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea
+              placeholder="Detailed acceptance criteria..."
+              rows="4"
+              {...register('description')}
+            ></textarea>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="form-group">
+              <label className="form-label">Priority</label>
+              <select {...register('priority')}>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Story Points</label>
+              <input
+                type="number"
+                placeholder="3"
+                {...register('storyPoints')}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Assign To (User ID)</label>
+            <input
+              type="text"
+              placeholder="Enter User ID of team member"
+              {...register('assignedTo')}
+            />
+            <p className="text-[10px] text-slate-600 mt-1">Leave empty to keep unassigned.</p>
+          </div>
+
+          <div className="flex gap-4 mt-6">
+            <button type="button" onClick={() => navigate(-1)} className="btn btn-secondary flex-1">
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary flex-1" disabled={loading}>
+              {loading ? 'Adding...' : 'Create Task'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
-}
+};
 
 export default CreateTaskPage;
