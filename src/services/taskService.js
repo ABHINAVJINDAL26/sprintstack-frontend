@@ -1,16 +1,7 @@
 import api from './api';
 
-export const taskService = {
-  createTask: async (payload) => {
-    const { data } = await api.post('/tasks', payload);
-    return data;
-  },
-  getTasks: async (params = {}) => {
-    const { data } = await api.get('/tasks', { params });
-    return data;
-  },
-  updateTask: async (taskId, payload) => {
-    const { data } = await api.put(`/tasks/${taskId}`, payload);
-    return data;
-  }
-};
+export const createTask = (data) => api.post('/tasks', data);
+export const getTasks = (params) => api.get('/tasks', { params });
+export const getTaskById = (id) => api.get(`/tasks/${id}`);
+export const updateTask = (id, data) => api.put(`/tasks/${id}`, data);
+export const deleteTask = (id) => api.delete(`/tasks/${id}`);

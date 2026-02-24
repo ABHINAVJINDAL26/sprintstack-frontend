@@ -1,12 +1,8 @@
 import api from './api';
 
-export const projectService = {
-  createProject: async (payload) => {
-    const { data } = await api.post('/projects', payload);
-    return data;
-  },
-  getProjectById: async (projectId) => {
-    const { data } = await api.get(`/projects/${projectId}`);
-    return data;
-  }
-};
+export const createProject = (data) => api.post('/projects', data);
+export const getAllProjects = () => api.get('/projects');
+export const getProjectById = (id) => api.get(`/projects/${id}`);
+export const updateProject = (id, data) => api.put(`/projects/${id}`, data);
+export const deleteProject = (id) => api.delete(`/projects/${id}`);
+export const addTeamMember = (id, email) => api.post(`/projects/${id}/members`, { email });
