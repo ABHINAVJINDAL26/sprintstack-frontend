@@ -1,91 +1,53 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { toast } from 'react-toastify';
-import { authService } from '../services/authService';
-import { getErrorMessage } from '../utils/errorHandler';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { login as loginService, getProfile } from '../services/authService';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [isAuthLoading, setIsAuthLoading] = useState(Boolean(token));
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      setIsAuthLoading(false);
-      return;
-    }
-
-    let isMounted = true;
-    authService
-      .getProfile()
-      .then((profile) => {
-        if (isMounted) {
-          setUser(profile?.user || profile);
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const { data } = await getProfile();
+          setUser(data.user);
+          localStorage.setItem('user', JSON.stringify(data.user));
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          logout();
         }
-      })
-      .catch(() => {
-        if (isMounted) {
-          localStorage.removeItem('token');
-          setToken(null);
-          setUser(null);
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsAuthLoading(false);
-        }
-      });
-
-    return () => {
-      isMounted = false;
+      }
+      setLoading(false);
     };
-  }, [token]);
+    initAuth();
+  }, []);
 
-  const login = async (payload) => {
-    const data = await authService.login(payload);
-    const accessToken = data?.token;
-    const loggedInUser = data?.user;
-
-    localStorage.setItem('token', accessToken);
-    setToken(accessToken);
-    setUser(loggedInUser || null);
-    toast.success('Login successful');
-  };
-
-  const register = async (payload) => {
-    await authService.register(payload);
-    toast.success('Registration successful. Please login.');
+  const login = async (credentials) => {
+    const { data } = await loginService(credentials);
+    setUser(data.user);
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    return data;
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
     setUser(null);
-    toast.info('Logged out');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
-  const value = useMemo(
-    () => ({
-      user,
-      token,
-      isAuthenticated: Boolean(token),
-      isAuthLoading,
-      login,
-      register,
-      logout,
-      getErrorMessage
-    }),
-    [user, token, isAuthLoading]
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout, setUser }}>
+      {children}
+    </AuthContext.Provider>
   );
+};
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuthContext() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuthContext must be used inside AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
-}
+};
