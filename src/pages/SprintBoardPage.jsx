@@ -75,17 +75,17 @@ const SprintBoardPage = () => {
   if (loading) return <div className="text-center py-20">Loading Board...</div>;
 
   return (
-    <div className="animate-fade-in h-[calc(100vh-120px)] flex flex-col">
-      <header className="flex justify-between items-center mb-6">
+    <div className="animate-fade-in min-h-[calc(100vh-140px)] flex flex-col">
+      <header className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-3 text-sm text-slate-500 mb-1">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-500 mb-1">
             <Link to={`/projects/${projectId}`} className="hover:text-blue-400 uppercase tracking-widest font-bold">
               {sprint.projectId.name}
             </Link>
             <span>/</span>
             <span className="text-slate-300 font-semibold">{sprint.name}</span>
           </div>
-          <h1 className="text-2xl font-bold flex items-center gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             Sprint Board
             {progress && (
               <div className="flex items-center gap-2 text-xs font-normal">
@@ -97,17 +97,17 @@ const SprintBoardPage = () => {
             )}
           </h1>
         </div>
-        <div className="flex gap-3">
-          <Link to={`/tasks/create?projectId=${projectId}&sprintId=${sprintId}`} className="btn btn-primary btn-sm">
+        <div className="flex gap-3 w-full md:w-auto">
+          <Link to={`/tasks/create?projectId=${projectId}&sprintId=${sprintId}`} className="btn btn-primary w-full md:w-auto">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             Add Task
           </Link>
         </div>
       </header>
 
-      <div className="flex-1 flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+      <div className="flex-1 flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide">
         {COLUMNS.map((col) => (
-          <div key={col.id} className="flex-shrink-0 w-80 flex flex-col">
+          <div key={col.id} className="flex-shrink-0 w-[280px] sm:w-80 flex flex-col">
             <div className={`px-4 py-3 rounded-t-xl ${col.color} border-x border-t border-slate-800 flex justify-between items-center`}>
               <span className="text-xs font-bold uppercase tracking-widest">{col.label}</span>
               <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full">

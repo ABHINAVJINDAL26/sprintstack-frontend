@@ -5,15 +5,15 @@ const ProfilePage = () => {
   const { user } = useAuth();
 
   return (
-    <div className="animate-fade-in max-w-2xl mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-8">User Profile</h1>
+    <div className="animate-fade-in max-w-2xl mx-auto py-4 sm:py-8 lg:py-10">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-8">User Profile</h1>
 
-      <div className="glass-card flex items-center gap-8 p-10">
-        <div className="w-32 h-32 rounded-full bg-blue-600/20 border-4 border-slate-800 flex items-center justify-center text-5xl font-bold bg-gradient-to-tr from-blue-500 to-emerald-500 text-white">
+      <div className="glass-card flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 p-4 sm:p-8 lg:p-10">
+        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-blue-600/20 border-4 border-slate-800 flex items-center justify-center text-3xl sm:text-5xl font-bold bg-gradient-to-tr from-blue-500 to-emerald-500 text-white">
           {user?.name?.charAt(0).toUpperCase()}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 w-full">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Full Name</p>
             <p className="text-xl font-semibold text-slate-100">{user?.name}</p>
@@ -22,7 +22,7 @@ const ProfilePage = () => {
             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Email Address</p>
             <p className="text-slate-300">{user?.email}</p>
           </div>
-          <div className="flex gap-10">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-10">
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Role</p>
               <span className="badge badge-blue">{user?.role}</span>

@@ -76,17 +76,17 @@ const ProjectDetailsPage = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-10">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-5 mb-8 sm:mb-10">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-4xl font-bold">{project.name}</h1>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold break-words">{project.name}</h1>
             <span className={`badge ${project.status === 'active' ? 'badge-emerald' : 'badge-amber'}`}>
               {project.status}
             </span>
           </div>
           <p className="text-slate-400 max-w-2xl">{project.description}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
           <button onClick={() => setShowMemberModal(true)} className="btn btn-secondary">
             Manage Team
           </button>
@@ -107,7 +107,7 @@ const ProjectDetailsPage = () => {
             ) : (
               <div className="space-y-4">
                 {sprints.map((sprint) => (
-                  <div key={sprint._id} className="glass-card flex justify-between items-center group">
+                  <div key={sprint._id} className="glass-card flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 group">
                     <div>
                       <h3 className="text-lg font-bold group-hover:text-blue-400 transition-colors uppercase tracking-wide">
                         {sprint.name}
@@ -116,7 +116,7 @@ const ProjectDetailsPage = () => {
                         {new Date(sprint.startDate).toLocaleDateString()} — {new Date(sprint.endDate).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between sm:justify-start gap-4 w-full sm:w-auto">
                       <span className={`badge text-[10px] ${sprint.status === 'active' ? 'badge-emerald' :
                           sprint.status === 'completed' ? 'badge-blue' : 'badge-amber'
                         }`}>

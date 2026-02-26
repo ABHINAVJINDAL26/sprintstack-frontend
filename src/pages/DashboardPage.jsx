@@ -34,12 +34,12 @@ const DashboardPage = () => {
 
   return (
     <div className="animate-fade-in">
-      <header className="flex justify-between items-end mb-10">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8 sm:mb-10">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name.split(' ')[0]}!</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Welcome back, {user?.name.split(' ')[0]}!</h1>
           <p className="text-slate-400">Here's what's happening in your projects today.</p>
         </div>
-        <Link to="/projects/create" className="btn btn-primary">
+        <Link to="/projects/create" className="btn btn-primary w-full sm:w-auto">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           New Project
         </Link>
@@ -57,7 +57,7 @@ const DashboardPage = () => {
             <Link to="/projects/create" className="btn btn-outline">Create Your First Project</Link>
           </div>
         ) : (
-          <div className="grid-cols-3">
+          <div className="grid-cols-3 gap-4 sm:gap-6">
             {projects.map((project) => (
               <ProjectCard key={project._id} project={project} />
             ))}

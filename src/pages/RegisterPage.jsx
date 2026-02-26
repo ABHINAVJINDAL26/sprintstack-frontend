@@ -2,10 +2,18 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { GoogleLogin } from '@react-oauth/google';
 import { register as registerUser } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterPage = () => {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm();
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+    defaultValues: {
+      role: 'developer',
+      organization: ''
+    }
+  });
+  const { googleAuth } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -19,6 +27,23 @@ const RegisterPage = () => {
       toast.error(error.response?.data?.message || 'Registration failed.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const selectedRole = watch('role') || 'developer';
+  const organization = watch('organization') || '';
+
+  const handleGoogleSignupSuccess = async (credentialResponse) => {
+    try {
+      await googleAuth({
+        idToken: credentialResponse.credential,
+        role: selectedRole,
+        organization,
+      });
+      toast.success('Account created with Google!');
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Google signup failed.');
     }
   };
 
@@ -96,6 +121,22 @@ const RegisterPage = () => {
             <button type="submit" className="btn btn-primary w-full mt-4" disabled={loading}>
               {loading ? 'Creating Account...' : 'Get Started for Free'}
             </button>
+
+            <div className="my-4 flex items-center gap-3 text-xs text-slate-500">
+              <div className="h-px bg-slate-800 flex-1"></div>
+              <span>OR</span>
+              <div className="h-px bg-slate-800 flex-1"></div>
+            </div>
+
+            <div className="w-full overflow-hidden rounded-lg border border-slate-800 bg-slate-900/50 p-1">
+              <GoogleLogin
+                onSuccess={handleGoogleSignupSuccess}
+                onError={() => toast.error('Google signup cancelled or failed.')}
+                theme="outline"
+                shape="pill"
+                text="signup_with"
+              />
+            </div>
           </form>
 
           <div className="mt-8 text-center text-sm">

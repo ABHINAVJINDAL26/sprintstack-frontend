@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
-  const { login } = useAuth();
+  const { login, googleAuth } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -20,6 +21,16 @@ const LoginPage = () => {
       toast.error(error.response?.data?.message || 'Login failed. Check your credentials.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      await googleAuth({ idToken: credentialResponse.credential });
+      toast.success('Logged in with Google successfully!');
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Google login failed.');
     }
   };
 
@@ -65,6 +76,22 @@ const LoginPage = () => {
                 </span>
               ) : 'Sign In'}
             </button>
+
+            <div className="my-4 flex items-center gap-3 text-xs text-slate-500">
+              <div className="h-px bg-slate-800 flex-1"></div>
+              <span>OR</span>
+              <div className="h-px bg-slate-800 flex-1"></div>
+            </div>
+
+            <div className="w-full overflow-hidden rounded-lg border border-slate-800 bg-slate-900/50 p-1">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => toast.error('Google login cancelled or failed.')}
+                theme="outline"
+                shape="pill"
+                text="signin_with"
+              />
+            </div>
           </form>
 
           <div className="mt-8 text-center text-sm">

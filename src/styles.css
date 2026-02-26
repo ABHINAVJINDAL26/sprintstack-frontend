@@ -28,6 +28,7 @@ body {
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, .font-display {
@@ -102,6 +103,7 @@ input:focus, select:focus, textarea:focus {
   transition: all 0.2s;
   border: none;
   gap: 0.5rem;
+  white-space: nowrap;
 }
 
 .btn-primary {
@@ -142,6 +144,21 @@ input:focus, select:focus, textarea:focus {
 @media (max-width: 768px) {
   .grid-cols-2, .grid-cols-3 {
     grid-template-columns: 1fr;
+  }
+
+  .glass-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  input, select, textarea {
+    font-size: 16px;
   }
 }
 
