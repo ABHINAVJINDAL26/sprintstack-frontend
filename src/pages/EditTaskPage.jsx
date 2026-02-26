@@ -3,12 +3,18 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getTaskById, updateTask, deleteTask } from '../services/taskService';
+import { getProjectById } from '../services/projectService';
+import { useAuth } from '../context/AuthContext';
 
 const EditTaskPage = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const { user } = useAuth();
+  const canDeleteTask = ['admin', 'manager'].includes(user?.role);
+  const canEditAllFields = ['admin', 'manager'].includes(user?.role);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
@@ -19,6 +25,13 @@ const EditTaskPage = () => {
   const fetchTask = async () => {
     try {
       const { data } = await getTaskById(taskId);
+      const projectId = data.task.projectId?._id || data.task.projectId;
+
+      if (projectId) {
+        const projectRes = await getProjectById(projectId);
+        setTeamMembers(projectRes.data.project?.teamMembers || []);
+      }
+
       reset({
         title: data.task.title,
         description: data.task.description,
@@ -69,9 +82,11 @@ const EditTaskPage = () => {
           </button>
           <h1 className="text-2xl sm:text-3xl font-bold">Edit Task</h1>
         </div>
-        <button onClick={handleDelete} className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors" title="Delete Task">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
-        </button>
+        {canDeleteTask && (
+          <button onClick={handleDelete} className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors" title="Delete Task">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
+          </button>
+        )}
       </div>
 
       <div className="glass-card">
@@ -80,6 +95,7 @@ const EditTaskPage = () => {
             <label className="form-label">Task Title</label>
             <input
               type="text"
+              disabled={!canEditAllFields}
               {...register('title', { required: 'Task title is required' })}
             />
             {errors.title && <small>{errors.title.message}</small>}
@@ -89,6 +105,7 @@ const EditTaskPage = () => {
             <label className="form-label">Description</label>
             <textarea
               rows="4"
+              disabled={!canEditAllFields}
               {...register('description')}
             ></textarea>
           </div>
@@ -106,7 +123,7 @@ const EditTaskPage = () => {
             </div>
             <div className="form-group">
               <label className="form-label">Priority</label>
-              <select {...register('priority')}>
+              <select {...register('priority')} disabled={!canEditAllFields}>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -115,11 +132,15 @@ const EditTaskPage = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Assignee ID</label>
-            <input
-              type="text"
-              {...register('assignedTo')}
-            />
+            <label className="form-label">Assign To</label>
+            <select {...register('assignedTo')} disabled={!canEditAllFields}>
+              <option value="">Unassigned</option>
+              {teamMembers.map((member) => (
+                <option key={member._id} value={member._id}>
+                  {member.name} ({member.role})
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-6">

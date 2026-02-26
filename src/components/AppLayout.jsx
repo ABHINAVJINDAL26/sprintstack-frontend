@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 const AppLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const canCreateProject = ['admin', 'manager'].includes(user?.role);
 
   const handleLogout = () => {
     logout();
@@ -22,7 +23,9 @@ const AppLayout = ({ children }) => {
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
             <Link to="/dashboard" className="hover:text-blue-400 transition-colors">Dashboard</Link>
             <Link to="/sprints/board" className="hover:text-blue-400 transition-colors">Sprint Board</Link>
-            <Link to="/projects/create" className="hover:text-blue-400 transition-colors capitalize">New Project</Link>
+            {canCreateProject && (
+              <Link to="/projects/create" className="hover:text-blue-400 transition-colors capitalize">New Project</Link>
+            )}
           </div>
         </div>
 
@@ -47,7 +50,9 @@ const AppLayout = ({ children }) => {
         <div className="md:hidden mt-3 flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-1 text-xs font-medium text-slate-300">
           <Link to="/dashboard" className="px-3 py-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-700 transition-colors">Dashboard</Link>
           <Link to="/sprints/board" className="px-3 py-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-700 transition-colors">Sprint Board</Link>
-          <Link to="/projects/create" className="px-3 py-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-700 transition-colors">New Project</Link>
+          {canCreateProject && (
+            <Link to="/projects/create" className="px-3 py-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-700 transition-colors">New Project</Link>
+          )}
           <Link to="/profile" className="px-3 py-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-700 transition-colors">Profile</Link>
         </div>
       </nav>

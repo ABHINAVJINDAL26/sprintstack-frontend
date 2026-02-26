@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { createTask } from '../services/taskService';
 import { getProjectById } from '../services/projectService';
+import { useAuth } from '../context/AuthContext';
 
 const CreateTaskPage = () => {
   const [searchParams] = useSearchParams();
@@ -22,12 +23,20 @@ const CreateTaskPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [project, setProject] = useState(null);
+  const teamMembers = project?.teamMembers || [];
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (user && !['admin', 'manager'].includes(user.role)) {
+      toast.error('Only admin or manager can create tasks');
+      navigate('/dashboard');
+      return;
+    }
+
     if (projectId) {
       getProjectById(projectId).then(res => setProject(res.data.project));
     }
-  }, [projectId]);
+  }, [projectId, user, navigate]);
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -99,13 +108,16 @@ const CreateTaskPage = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Assign To (User ID)</label>
-            <input
-              type="text"
-              placeholder="Enter User ID of team member"
-              {...register('assignedTo')}
-            />
-            <p className="text-[10px] text-slate-600 mt-1">Leave empty to keep unassigned.</p>
+            <label className="form-label">Assign To</label>
+            <select {...register('assignedTo')}>
+              <option value="">Unassigned</option>
+              {teamMembers.map((member) => (
+                <option key={member._id} value={member._id}>
+                  {member.name} ({member.role})
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-slate-600 mt-1">Select any project team member.</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-6">

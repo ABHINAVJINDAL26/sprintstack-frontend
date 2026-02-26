@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { createProject } from '../services/projectService';
+import { useAuth } from '../context/AuthContext';
 
 const CreateProjectPage = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user && !['admin', 'manager'].includes(user.role)) {
+      toast.error('Only admin or manager can create projects');
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const onSubmit = async (data) => {
     setLoading(true);

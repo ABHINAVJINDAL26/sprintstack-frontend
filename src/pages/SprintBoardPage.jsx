@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getSprintById, getSprintProgress } from '../services/sprintService';
 import { getTasks, updateTask } from '../services/taskService';
+import { useAuth } from '../context/AuthContext';
 
 const COLUMNS = [
   { id: 'backlog', label: 'Backlog', color: 'bg-slate-800' },
@@ -21,6 +22,8 @@ const SprintBoardPage = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(null);
+  const { user } = useAuth();
+  const canCreateTask = ['admin', 'manager'].includes(user?.role);
 
   useEffect(() => {
     if (!sprintId || !projectId) {
@@ -98,10 +101,12 @@ const SprintBoardPage = () => {
           </h1>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
-          <Link to={`/tasks/create?projectId=${projectId}&sprintId=${sprintId}`} className="btn btn-primary w-full md:w-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-            Add Task
-          </Link>
+          {canCreateTask && (
+            <Link to={`/tasks/create?projectId=${projectId}&sprintId=${sprintId}`} className="btn btn-primary w-full md:w-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+              Add Task
+            </Link>
+          )}
         </div>
       </header>
 

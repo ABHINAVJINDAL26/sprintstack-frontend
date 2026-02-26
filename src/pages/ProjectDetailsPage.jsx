@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getProjectById, addTeamMember } from '../services/projectService';
 import { getSprintsByProject, createSprint } from '../services/sprintService';
+import { useAuth } from '../context/AuthContext';
 
 const ProjectDetailsPage = () => {
   const { projectId } = useParams();
@@ -13,6 +14,7 @@ const ProjectDetailsPage = () => {
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [showSprintModal, setShowSprintModal] = useState(false);
   const [memberEmail, setMemberEmail] = useState('');
+  const { user } = useAuth();
 
   const [sprintData, setSprintData] = useState({
     name: '',
@@ -69,6 +71,10 @@ const ProjectDetailsPage = () => {
 
   if (loading) return <div className="text-center py-20">Loading...</div>;
 
+  const isOwner = project?.createdBy?._id === user?._id;
+  const canManageTeam = ['admin', 'manager'].includes(user?.role) || isOwner;
+  const canPlanSprint = ['admin', 'manager'].includes(user?.role);
+
   const uniqueTeamMembers = (project?.teamMembers || []).filter(
     (member, index, members) =>
       members.findIndex((candidate) => candidate._id === member._id) === index
@@ -87,12 +93,16 @@ const ProjectDetailsPage = () => {
           <p className="text-slate-400 max-w-2xl">{project.description}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-          <button onClick={() => setShowMemberModal(true)} className="btn btn-secondary">
-            Manage Team
-          </button>
-          <button onClick={() => setShowSprintModal(true)} className="btn btn-primary">
-            Plan Sprint
-          </button>
+          {canManageTeam && (
+            <button onClick={() => setShowMemberModal(true)} className="btn btn-secondary">
+              Manage Team
+            </button>
+          )}
+          {canPlanSprint && (
+            <button onClick={() => setShowSprintModal(true)} className="btn btn-primary">
+              Plan Sprint
+            </button>
+          )}
         </div>
       </div>
 
@@ -156,7 +166,7 @@ const ProjectDetailsPage = () => {
       </div>
 
       {/* Member Modal */}
-      {showMemberModal && (
+      {showMemberModal && canManageTeam && (
         <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 py-6 overflow-y-auto">
           <div className="glass-card w-full max-w-md animate-fade-in !bg-slate-900 max-h-[calc(100vh-3rem)] overflow-y-auto">
             <h3 className="text-xl font-bold mb-6">Invite Team Member</h3>
@@ -181,7 +191,7 @@ const ProjectDetailsPage = () => {
       )}
 
       {/* Sprint Modal */}
-      {showSprintModal && (
+      {showSprintModal && canPlanSprint && (
         <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 py-6 overflow-y-auto">
           <div className="glass-card w-full max-w-md animate-fade-in !bg-slate-900 max-h-[calc(100vh-3rem)] overflow-y-auto">
             <h3 className="text-xl font-bold mb-6">Plan New Sprint</h3>
