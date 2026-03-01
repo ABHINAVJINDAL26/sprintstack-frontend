@@ -110,7 +110,6 @@ const RegisterPage = () => {
                   <option value="developer">Developer</option>
                   <option value="manager">Manager</option>
                   <option value="qa">QA Engineer</option>
-                  <option value="admin">Admin</option>
                 </select>
               </div>
               <div className="form-group">
