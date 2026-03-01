@@ -55,6 +55,54 @@ const formatFileSize = (bytes = 0) => {
   return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 };
 
+const getRoleTheme = (role, mine) => {
+  if (mine) {
+    return {
+      bubbleClassName: 'bg-blue-600/20 border-blue-500/40 text-blue-100',
+      badgeClassName: 'bg-blue-500/20 text-blue-300 border border-blue-400/40',
+      avatarClassName: 'bg-blue-500/25 border-blue-400/50 text-blue-200',
+      roleLabel: 'You',
+    };
+  }
+
+  const normalizedRole = String(role || 'member').toLowerCase();
+
+  const roleThemes = {
+    admin: {
+      bubbleClassName: 'bg-violet-600/15 border-violet-500/45 text-violet-100',
+      badgeClassName: 'bg-violet-500/20 text-violet-200 border border-violet-400/45',
+      avatarClassName: 'bg-violet-500/25 border-violet-400/50 text-violet-200',
+      roleLabel: 'Admin',
+    },
+    manager: {
+      bubbleClassName: 'bg-amber-600/15 border-amber-500/45 text-amber-100',
+      badgeClassName: 'bg-amber-500/20 text-amber-200 border border-amber-400/45',
+      avatarClassName: 'bg-amber-500/25 border-amber-400/50 text-amber-200',
+      roleLabel: 'Manager',
+    },
+    developer: {
+      bubbleClassName: 'bg-cyan-600/15 border-cyan-500/45 text-cyan-100',
+      badgeClassName: 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/45',
+      avatarClassName: 'bg-cyan-500/25 border-cyan-400/50 text-cyan-200',
+      roleLabel: 'Developer',
+    },
+    qa: {
+      bubbleClassName: 'bg-emerald-600/15 border-emerald-500/45 text-emerald-100',
+      badgeClassName: 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/45',
+      avatarClassName: 'bg-emerald-500/25 border-emerald-400/50 text-emerald-200',
+      roleLabel: 'QA',
+    },
+    member: {
+      bubbleClassName: 'bg-slate-900 border-slate-700 text-slate-200',
+      badgeClassName: 'bg-slate-800/80 text-slate-300 border border-slate-700',
+      avatarClassName: 'bg-slate-800 border-slate-700 text-slate-300',
+      roleLabel: 'Member',
+    },
+  };
+
+  return roleThemes[normalizedRole] || roleThemes.member;
+};
+
 const ProjectChatPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -231,15 +279,22 @@ const ProjectChatPage = () => {
             messages.map((msg) => {
               const mine = msg.senderId?._id === user?._id;
               const messageAttachments = msg.attachments || [];
+              const senderName = mine ? 'You' : msg.senderId?.name || 'Member';
+              const senderRole = mine ? 'you' : msg.senderId?.role || 'member';
+              const roleTheme = getRoleTheme(senderRole, mine);
               return (
                 <div key={msg._id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`message-pop max-w-[92%] sm:max-w-[72%] rounded-2xl px-4 py-3 border shadow-lg ${mine
-                    ? 'bg-blue-600/20 border-blue-500/40 text-blue-100'
-                    : 'bg-slate-900 border-slate-700 text-slate-200'
-                    }`}>
-                    <div className="text-[11px] mb-1 opacity-80 uppercase tracking-wide">
-                      {mine ? 'You' : `${msg.senderId?.name || 'Member'} • ${msg.senderId?.role || 'user'}`}
+                  <div className={`message-pop max-w-[92%] sm:max-w-[72%] rounded-2xl px-4 py-3 border shadow-lg ${roleTheme.bubbleClassName}`}>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold uppercase ${roleTheme.avatarClassName}`}>
+                        {senderName.charAt(0)}
+                      </div>
+                      <span className="text-xs font-semibold tracking-wide">{senderName}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold ${roleTheme.badgeClassName}`}>
+                        {roleTheme.roleLabel}
+                      </span>
                     </div>
+
                     {msg.message && <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>}
 
                     {messageAttachments.length > 0 && (
