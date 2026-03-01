@@ -24,6 +24,13 @@ const SprintBoardPage = () => {
   const [progress, setProgress] = useState(null);
   const { user } = useAuth();
   const canCreateTask = ['admin', 'manager'].includes(user?.role);
+  const [showOnlyAssigned, setShowOnlyAssigned] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === 'developer' || user?.role === 'qa') {
+      setShowOnlyAssigned(true);
+    }
+  }, [user?.role]);
 
   useEffect(() => {
     if (!sprintId || !projectId) {
@@ -77,6 +84,10 @@ const SprintBoardPage = () => {
 
   if (loading) return <div className="text-center py-20">Loading Board...</div>;
 
+  const displayedTasks = showOnlyAssigned
+    ? tasks.filter((task) => task.assignedTo?._id === user?._id)
+    : tasks;
+
   return (
     <div className="animate-fade-in min-h-[calc(100vh-140px)] flex flex-col">
       <header className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
@@ -100,9 +111,16 @@ const SprintBoardPage = () => {
             )}
           </h1>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <button
+            type="button"
+            onClick={() => setShowOnlyAssigned((prev) => !prev)}
+            className="btn btn-secondary w-full sm:w-auto"
+          >
+            {showOnlyAssigned ? 'Showing: My Tasks' : 'Showing: All Tasks'}
+          </button>
           {canCreateTask && (
-            <Link to={`/tasks/create?projectId=${projectId}&sprintId=${sprintId}`} className="btn btn-primary w-full md:w-auto">
+            <Link to={`/tasks/create?projectId=${projectId}&sprintId=${sprintId}`} className="btn btn-primary w-full sm:w-auto">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
               Add Task
             </Link>
@@ -110,24 +128,28 @@ const SprintBoardPage = () => {
         </div>
       </header>
 
+      {showOnlyAssigned && (
+        <p className="text-xs text-slate-400 mb-4">Only tasks assigned to you are visible right now.</p>
+      )}
+
       <div className="flex-1 flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide">
         {COLUMNS.map((col) => (
-          <div key={col.id} className="flex-shrink-0 w-[280px] sm:w-80 flex flex-col">
+          <div key={col.id} className="board-column-premium flex-shrink-0 w-[280px] sm:w-80 flex flex-col">
             <div className={`px-4 py-3 rounded-t-xl ${col.color} border-x border-t border-slate-800 flex justify-between items-center`}>
               <span className="text-xs font-bold uppercase tracking-widest">{col.label}</span>
               <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full">
-                {tasks.filter(t => t.status === col.id).length}
+                {displayedTasks.filter(t => t.status === col.id).length}
               </span>
             </div>
             <div className="flex-1 bg-slate-900/50 border-x border-b border-slate-800 rounded-b-xl p-3 space-y-3 overflow-y-auto">
-              {tasks.filter(t => t.status === col.id).map(task => (
+              {displayedTasks.filter(t => t.status === col.id).map(task => (
                 <BoardTaskCard
                   key={task._id}
                   task={task}
                   onStatusChange={handleStatusChange}
                 />
               ))}
-              {tasks.filter(t => t.status === col.id).length === 0 && (
+              {displayedTasks.filter(t => t.status === col.id).length === 0 && (
                 <div className="text-center py-10 opacity-20 italic text-xs">Empty</div>
               )}
             </div>
@@ -140,10 +162,14 @@ const SprintBoardPage = () => {
 
 const BoardTaskCard = ({ task, onStatusChange }) => {
   const [showActions, setShowActions] = useState(false);
+  const { user } = useAuth();
+
+  const allowedTargetStatuses = COLUMNS.filter((c) => c.id !== task.status)
+    .filter((c) => !(user?.role === 'developer' && c.id === 'done'));
 
   return (
     <div
-      className="glass-card !p-4 !rounded-xl cursor-pointer"
+      className="glass-card task-card-premium !p-4 !rounded-xl cursor-pointer"
       onClick={() => setShowActions(!showActions)}
     >
       <div className="flex justify-between items-start mb-2">
@@ -188,12 +214,12 @@ const BoardTaskCard = ({ task, onStatusChange }) => {
 
       {showActions && (
         <div className="mt-4 pt-3 border-t border-slate-800 flex flex-wrap gap-2 animate-fade-in" onClick={e => e.stopPropagation()}>
-          <p className="w-full text-[8px] uppercase text-slate-600 font-bold mb-1">Move to:</p>
-          {COLUMNS.filter(c => c.id !== task.status).map(col => (
+          <p className="w-full text-[9px] uppercase text-slate-600 font-bold mb-1">Move to:</p>
+          {allowedTargetStatuses.map(col => (
             <button
               key={col.id}
               onClick={() => onStatusChange(task._id, col.id, task.status)}
-              className="text-[9px] font-bold px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition-colors uppercase border border-slate-700"
+              className="text-[10px] font-bold px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 transition-colors uppercase border border-slate-700"
             >
               {col.label}
             </button>

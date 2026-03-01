@@ -31,6 +31,24 @@ body {
   overflow-x: hidden;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
 h1, h2, h3, h4, .font-display {
   font-family: 'Outfit', sans-serif;
 }
@@ -53,12 +71,34 @@ a {
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  width: 100%;
   transition: transform 0.2s, border-color 0.2s;
 }
 
 .glass-card:hover {
   border-color: var(--accent);
+}
+
+.project-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+}
+
+.project-card-tilt {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.18s ease-out, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+@media (pointer: coarse) {
+  .project-card-tilt {
+    transform: none !important;
+  }
 }
 
 /* Form Styles */
@@ -104,16 +144,34 @@ input:focus, select:focus, textarea:focus {
   border: none;
   gap: 0.5rem;
   white-space: nowrap;
+  min-height: 44px;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, var(--primary), #2563eb);
   color: white;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(110deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  transition: left 0.6s ease;
+}
+
+.btn-primary:hover::after {
+  left: 140%;
 }
 
 .btn-secondary {
@@ -152,7 +210,6 @@ input:focus, select:focus, textarea:focus {
   }
 
   .btn {
-    width: 100%;
     padding: 0.7rem 1rem;
     font-size: 0.9rem;
   }
@@ -170,6 +227,241 @@ input:focus, select:focus, textarea:focus {
 
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes enterUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseBorder {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.1); }
+  50% { box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14); }
+}
+
+.animate-enter-up {
+  animation: enterUp 0.45s ease forwards;
+}
+
+.nav-link-premium {
+  position: relative;
+}
+
+.nav-link-premium::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+  background: linear-gradient(90deg, #60a5fa, #34d399);
+}
+
+.nav-link-premium:hover::after {
+  transform: scaleX(1);
+}
+
+@keyframes driftSlow {
+  0%, 100% { transform: translate(0px, 0px); }
+  50% { transform: translate(16px, -14px); }
+}
+
+@keyframes brandFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+.auth-page {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 15% 75%, rgba(59, 130, 246, 0.16), transparent 32%),
+    radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.12), transparent 30%),
+    var(--bg-deep);
+}
+
+.auth-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-orb-left {
+  width: 260px;
+  height: 260px;
+  left: -90px;
+  bottom: -120px;
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.auth-orb-right {
+  width: 320px;
+  height: 320px;
+  right: -120px;
+  top: -130px;
+  background: rgba(99, 102, 241, 0.2);
+}
+
+.brand-float {
+  animation: brandFloat 4s ease-in-out infinite;
+}
+
+.auth-input-wrap {
+  position: relative;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.app-bg-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+  animation: driftSlow 9s ease-in-out infinite;
+}
+
+.sprint-card-premium {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.sprint-card-premium:hover {
+  transform: translateY(-3px);
+  border-color: rgba(96, 165, 250, 0.6);
+  box-shadow: 0 10px 24px rgba(56, 189, 248, 0.14);
+}
+
+.board-column-premium {
+  transition: transform 0.25s ease;
+  min-height: clamp(360px, 58vh, 720px);
+}
+
+.board-column-premium:hover {
+  transform: translateY(-2px);
+}
+
+.task-card-premium {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-card-premium:hover {
+  transform: translateY(-2px);
+  border-color: rgba(96, 165, 250, 0.35);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.12);
+}
+
+.message-pop {
+  animation: enterUp 0.28s ease;
+}
+
+.app-bg-blob-1 {
+  width: 240px;
+  height: 240px;
+  left: -90px;
+  top: 20%;
+  background: rgba(59, 130, 246, 0.4);
+}
+
+.app-bg-blob-2 {
+  width: 300px;
+  height: 300px;
+  right: -120px;
+  bottom: 15%;
+  background: rgba(16, 185, 129, 0.28);
+  animation-delay: 1.6s;
+}
+
+.mouse-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 280px;
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.14;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.85) 0%, rgba(96, 165, 250, 0) 65%);
+  filter: blur(18px);
+  transform: translate(-999px, -999px);
+}
+
+@media (max-width: 640px) {
+  .auth-orb-left {
+    width: 200px;
+    height: 200px;
+    left: -90px;
+    bottom: -90px;
+  }
+
+  .auth-orb-right {
+    width: 240px;
+    height: 240px;
+    right: -100px;
+    top: -90px;
+  }
+
+  .app-bg-blob-1 {
+    width: 160px;
+    height: 160px;
+  }
+
+  .app-bg-blob-2 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .board-column-premium {
+    width: min(88vw, 22rem) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bg-blob,
+  .brand-float,
+  .animate-star-movement-bottom,
+  .animate-star-movement-top {
+    animation: none !important;
+  }
+}
+
+@media (pointer: coarse) {
+  .mouse-glow {
+    display: none;
+  }
+}
+
+@keyframes star-movement-bottom {
+  0% { transform: translate(0%, 0%); opacity: 1; }
+  100% { transform: translate(-100%, 0%); opacity: 0; }
+}
+
+@keyframes star-movement-top {
+  0% { transform: translate(0%, 0%); opacity: 1; }
+  100% { transform: translate(100%, 0%); opacity: 0; }
+}
+
+.animate-star-movement-bottom {
+  animation: star-movement-bottom linear infinite alternate;
+}
+
+.animate-star-movement-top {
+  animation: star-movement-top linear infinite alternate;
 }
 
 /* Badge Styles */

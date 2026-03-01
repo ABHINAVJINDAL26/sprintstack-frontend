@@ -5,6 +5,7 @@ import { ToastContainer } from 'react-toastify';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
+import MouseGlow from './components/MouseGlow';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles.css';
 
@@ -15,6 +16,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <GoogleOAuthProvider clientId={googleClientId || 'missing-google-client-id'}>
       <BrowserRouter>
         <AuthProvider>
+          <MouseGlow />
           <App />
           <ToastContainer position="top-right" autoClose={2500} />
         </AuthProvider>

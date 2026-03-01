@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getProjectById, addTeamMember } from '../services/projectService';
+import { getProjectById, addTeamMember, updateProject, deleteProject } from '../services/projectService';
 import { getSprintsByProject, createSprint } from '../services/sprintService';
 import { useAuth } from '../context/AuthContext';
 
@@ -13,8 +13,16 @@ const ProjectDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [showSprintModal, setShowSprintModal] = useState(false);
+  const [showEditProjectModal, setShowEditProjectModal] = useState(false);
   const [memberEmail, setMemberEmail] = useState('');
   const { user } = useAuth();
+  const [savingProject, setSavingProject] = useState(false);
+
+  const [editProjectData, setEditProjectData] = useState({
+    name: '',
+    description: '',
+    status: 'active'
+  });
 
   const [sprintData, setSprintData] = useState({
     name: '',
@@ -35,6 +43,11 @@ const ProjectDetailsPage = () => {
       ]);
       setProject(projectData.project);
       setSprints(sprintsData.sprints);
+      setEditProjectData({
+        name: projectData.project.name || '',
+        description: projectData.project.description || '',
+        status: projectData.project.status || 'active'
+      });
     } catch (error) {
       toast.error('Failed to load project details');
       navigate('/dashboard');
@@ -69,11 +82,40 @@ const ProjectDetailsPage = () => {
     }
   };
 
+  const handleUpdateProject = async (e) => {
+    e.preventDefault();
+    setSavingProject(true);
+    try {
+      await updateProject(projectId, editProjectData);
+      toast.success('Project updated successfully!');
+      setShowEditProjectModal(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update project');
+    } finally {
+      setSavingProject(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    const shouldDelete = window.confirm('Are you sure you want to delete this project? This action cannot be undone.');
+    if (!shouldDelete) return;
+
+    try {
+      await deleteProject(projectId);
+      toast.success('Project deleted successfully');
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete project');
+    }
+  };
+
   if (loading) return <div className="text-center py-20">Loading...</div>;
 
   const isOwner = project?.createdBy?._id === user?._id;
   const canManageTeam = ['admin', 'manager'].includes(user?.role) || isOwner;
   const canPlanSprint = ['admin', 'manager'].includes(user?.role);
+  const canModifyProject = user?.role === 'admin' || isOwner;
 
   const uniqueTeamMembers = (project?.teamMembers || []).filter(
     (member, index, members) =>
@@ -92,15 +134,28 @@ const ProjectDetailsPage = () => {
           </div>
           <p className="text-slate-400 max-w-2xl">{project.description}</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap gap-3 w-full lg:w-auto">
+          <Link to={`/projects/${projectId}/chat`} className="btn btn-secondary w-full sm:w-auto">
+            Project Chat
+          </Link>
+          {canModifyProject && (
+            <button onClick={() => setShowEditProjectModal(true)} className="btn btn-secondary w-full sm:w-auto">
+              Edit Project
+            </button>
+          )}
           {canManageTeam && (
-            <button onClick={() => setShowMemberModal(true)} className="btn btn-secondary">
+            <button onClick={() => setShowMemberModal(true)} className="btn btn-secondary w-full sm:w-auto">
               Manage Team
             </button>
           )}
           {canPlanSprint && (
-            <button onClick={() => setShowSprintModal(true)} className="btn btn-primary">
+            <button onClick={() => setShowSprintModal(true)} className="btn btn-primary w-full sm:w-auto">
               Plan Sprint
+            </button>
+          )}
+          {canModifyProject && (
+            <button onClick={handleDeleteProject} className="btn btn-secondary w-full sm:w-auto text-rose-400 border-rose-500/40 hover:bg-rose-500/10">
+              Delete Project
             </button>
           )}
         </div>
@@ -117,7 +172,7 @@ const ProjectDetailsPage = () => {
             ) : (
               <div className="space-y-4">
                 {sprints.map((sprint) => (
-                  <div key={sprint._id} className="glass-card flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 group">
+                  <div key={sprint._id} className="glass-card sprint-card-premium flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 group">
                     <div>
                       <h3 className="text-lg font-bold group-hover:text-blue-400 transition-colors uppercase tracking-wide">
                         {sprint.name}
@@ -190,6 +245,52 @@ const ProjectDetailsPage = () => {
         </div>
       )}
 
+      {/* Edit Project Modal */}
+      {showEditProjectModal && canModifyProject && (
+        <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 py-6 overflow-y-auto">
+          <div className="glass-card w-full max-w-md animate-fade-in !bg-slate-900 max-h-[calc(100vh-3rem)] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-6">Edit Project</h3>
+            <form onSubmit={handleUpdateProject} className="form">
+              <div className="form-group">
+                <label className="form-label">Project Name</label>
+                <input
+                  type="text"
+                  value={editProjectData.name}
+                  onChange={(e) => setEditProjectData({ ...editProjectData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea
+                  value={editProjectData.description}
+                  onChange={(e) => setEditProjectData({ ...editProjectData, description: e.target.value })}
+                ></textarea>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Status</label>
+                <select
+                  value={editProjectData.status}
+                  onChange={(e) => setEditProjectData({ ...editProjectData, status: e.target.value })}
+                >
+                  <option value="active">Active</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+
+              <div className="flex gap-4">
+                <button type="button" onClick={() => setShowEditProjectModal(false)} className="btn btn-secondary flex-1">Cancel</button>
+                <button type="submit" className="btn btn-primary flex-1" disabled={savingProject}>
+                  {savingProject ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Sprint Modal */}
       {showSprintModal && canPlanSprint && (
         <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 py-6 overflow-y-auto">
@@ -206,7 +307,7 @@ const ProjectDetailsPage = () => {
                   required
                 />
               </div>
-              <div className="grid-cols-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="form-group">
                   <label className="form-label">Start Date</label>
                   <input

@@ -60,9 +60,9 @@ const DashboardPage = () => {
             {canCreateProject && <Link to="/projects/create" className="btn btn-outline">Create Your First Project</Link>}
           </div>
         ) : (
-          <div className="grid-cols-3 gap-4 sm:gap-6">
-            {projects.map((project) => (
-              <ProjectCard key={project._id} project={project} />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            {projects.map((project, index) => (
+              <ProjectCard key={project._id} project={project} index={index} />
             ))}
           </div>
         )}
@@ -71,9 +71,38 @@ const DashboardPage = () => {
   );
 };
 
-const ProjectCard = ({ project }) => {
+const ProjectCard = ({ project, index = 0 }) => {
+  const [tiltStyle, setTiltStyle] = useState({});
+
+  const handleCardMouseMove = (event) => {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const relativeX = (event.clientX - rect.left) / rect.width;
+    const relativeY = (event.clientY - rect.top) / rect.height;
+
+    const rotateY = (relativeX - 0.5) * 10;
+    const rotateX = (0.5 - relativeY) * 10;
+
+    setTiltStyle({
+      transform: `perspective(900px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`,
+    });
+  };
+
+  const handleCardMouseLeave = () => {
+    setTiltStyle({});
+  };
+
   return (
-    <div className="glass-card flex flex-col justify-between h-full">
+    <div
+      className="glass-card project-card project-card-tilt flex flex-col justify-between h-full"
+      onMouseMove={handleCardMouseMove}
+      onMouseLeave={handleCardMouseLeave}
+      style={{
+        ...tiltStyle,
+        animationDelay: `${Math.min(index, 6) * 60}ms`,
+      }}
+    >
       <div>
         <div className="flex justify-between items-start mb-4">
           <span className={`badge ${project.status === 'active' ? 'badge-emerald' : 'badge-amber'}`}>
@@ -89,12 +118,12 @@ const ProjectCard = ({ project }) => {
         <div className="flex items-center gap-2 mb-6">
           <div className="flex -space-x-2 overflow-hidden">
             {project.teamMembers.slice(0, 3).map((member, i) => (
-              <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-bold border border-slate-700" title={member.name}>
+              <div key={i} className="h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-bold border border-slate-700" title={member.name}>
                 {member.name.charAt(0).toUpperCase()}
               </div>
             ))}
             {project.teamMembers.length > 3 && (
-              <div className="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-400 border border-slate-700">
+              <div className="h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-400 border border-slate-700">
                 +{project.teamMembers.length - 3}
               </div>
             )}

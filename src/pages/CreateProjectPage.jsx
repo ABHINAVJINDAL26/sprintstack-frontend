@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { createProject } from '../services/projectService';
 import { useAuth } from '../context/AuthContext';
+import StarBorder from '../components/StarBorder';
 
 const CreateProjectPage = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -65,9 +66,16 @@ const CreateProjectPage = () => {
             <button type="button" onClick={() => navigate(-1)} className="btn btn-secondary flex-1">
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary flex-1" disabled={loading}>
+            <StarBorder
+              as="button"
+              type="submit"
+              className="flex-1"
+              color="#34d399"
+              speed="6s"
+              disabled={loading}
+            >
               {loading ? 'Creating...' : 'Create Project'}
-            </button>
+            </StarBorder>
           </div>
         </form>
       </div>
