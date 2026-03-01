@@ -103,7 +103,10 @@ const ProjectChatPage = () => {
     const socketUrl = getSocketBase();
 
     const socket = io(socketUrl, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 800,
       auth: { token },
     });
 
@@ -132,7 +135,7 @@ const ProjectChatPage = () => {
     });
 
     socket.on('connect_error', () => {
-      toast.error('Realtime chat connection failed');
+      toast.info('Realtime reconnecting...');
     });
 
     return () => {
